@@ -14,6 +14,7 @@ High-performance, game-ready pathfinding for Rust with zero-allocation hot paths
 - Path smoothing (string-pulling) to remove stair-step artifacts
 - Grid2D graph with diagonal modes and per-cell costs; trait-based `Graph` for custom graphs
 - Dynamic obstacles (block/unblock at runtime) and weighted terrain
+- NavMesh support (Experimental) with Funnel Algorithm smoothing
 
 ## Quick start: frame-budgeted search
 Copy-paste friendly game-loop example (see `examples/frame_budget.rs`):
@@ -82,6 +83,26 @@ Note: On tiny empty grids, wall-clock is dominated by harness/overhead, so the s
 - `examples/path_cache.rs`: cache hits on repeated queries.
 - `examples/basic_grid.rs`, `examples/weighted_terrain.rs`, `examples/dynamic_obstacles.rs`: standard patterns (add your own graph types via the `Graph` trait).
 
+## Experimental: Navigation Mesh
+We now support basic Navigation Meshes with A* pathfinding and Funnel Algorithm (string pulling) smoothing.
+This implementation uses a cache-friendly "Struct of Arrays" layout.
+
+```rust
+// See examples/navmesh_test.rs for full code
+use pathforge::graphs::navmesh::NavMesh;
+use pathforge::algorithms::funnel::string_pull;
+
+// 1. Construct Mesh (Vertices, Polygons, Neighbors)
+let mesh = NavMesh::new(vertices, polygons, neighbors);
+
+// 2. Find Path (A*)
+let path_poly_indices = astar( ... ).path;
+
+// 3. Convert to Portals & Smooth
+let portals = mesh.get_portals(&path_poly_indices, start_pos, end_pos);
+let smooth_path = string_pull(&portals); // Returns Vec<[f32; 3]>
+```
+
 ## Custom graphs
 Implement `Graph` to plug in hex grids, navmeshes, or your own world:
 
@@ -103,7 +124,7 @@ impl Graph for MyGraph {
 - `serde`: planned for serializing grids/flow fields.
 
 ## Roadmap
-- NavMesh support
+- [x] NavMesh support (Basic)
 - HPA* for very large worlds
 - 3D grids and Theta*
 - serde support for graphs/flow fields

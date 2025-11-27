@@ -4,3 +4,4 @@ pub mod parallel;
 pub mod flowfield;
 pub mod theta;
 pub mod replanning;
+pub mod funnel;
