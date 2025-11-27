@@ -68,6 +68,8 @@ for _frame in 0..100 {
 | Empty 128x128 | 100 | 1 | ~85 µs | ~41 µs | ~2x |
 | Maze 64x64 | 1327 | 31 | ~512 µs | ~41 µs | ~12x |
 
+Note: On tiny empty grids, wall-clock is dominated by harness/overhead, so the speedup looks modest despite the 100→1 node reduction. JPS shines on larger grids and real mazes where node count dominates.
+
 ### Flow field compute (one-time)
 | Grid | Time |
 |------|------|
