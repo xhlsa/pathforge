@@ -1,52 +1,46 @@
-use pathforge::{
-    budget::BudgetedPathfinder,
-    algorithms::astar::AStarConfig,
-    graphs::grid2d::{Grid2D, GridPos, DiagonalMode},
-    heuristics::Diagonal,
-};
-use std::time::{Duration, Instant};
+use std::time::Duration;
+
+use pathforge::algorithms::astar::AStarConfig;
+use pathforge::budget::BudgetedPathfinder;
+use pathforge::graphs::grid2d::{DiagonalMode, Grid2D, GridPos};
+use pathforge::heuristics::Diagonal;
 
 fn main() {
-    let width = 500;
-    let height = 500;
-    let mut grid = Grid2D::new(width, height, DiagonalMode::Always);
-    
-    // Maze
-    for x in (10..490).step_by(10) {
-        grid.set_region_blocked((x, 0, 2, 400), true);
-    }
-    
-    let start = GridPos { x: 5, y: 5 };
-    let goal = GridPos { x: 495, y: 495 };
-    
-    let config = AStarConfig::default();
-    let mut pathfinder = BudgetedPathfinder::new(config);
+    let width = 2048;
+    let height = 2048;
+    let grid = Grid2D::new(width, height, DiagonalMode::Always);
+
+    let start = GridPos { x: 0, y: 0 };
+    let goal = GridPos { x: 2000, y: 2000 };
+
+    let mut pathfinder = BudgetedPathfinder::new(AStarConfig::default());
     let heuristic = Diagonal::default();
-    
-    println!("Starting budgeted pathfinding...");
     pathfinder.start(start, goal, &heuristic);
-    
-    let mut frame = 0;
-    let budget = Duration::from_micros(500); // 0.5 ms per frame
-    let start_time = Instant::now();
-    
-    loop {
-        frame += 1;
-        let complete = pathfinder.step(&grid, &heuristic, budget);
-        
-        if complete {
-            println!("Pathfinding complete on frame {}!", frame);
+
+    // Simulate a game/render loop with a 0.5 ms frame budget for pathfinding work.
+    for frame in 0..100 {
+        let done = pathfinder.step(&grid, &heuristic, Duration::from_micros(500));
+
+        if let Some(partial) = pathfinder.partial_result() {
+            println!(
+                "frame {frame:02}: expanded {} nodes, partial path length {} (status {:?})",
+                partial.nodes_expanded,
+                partial.path.len(),
+                partial.status
+            );
+        }
+
+        if done {
+            if let Some(result) = pathfinder.take_result() {
+                println!(
+                    "complete on frame {frame:02}: status {:?}, nodes {}, path length {}, cost {}",
+                    result.status,
+                    result.nodes_expanded,
+                    result.path.len(),
+                    result.cost
+                );
+            }
             break;
         }
-        
-        // Simulate other frame work
-        // thread::sleep(Duration::from_millis(16));
-    }
-    
-    let total_duration = start_time.elapsed();
-    println!("Total wall time: {:.2?}", total_duration);
-    
-    if let Some(result) = pathfinder.take_result() {
-        println!("Status: {:?}, Cost: {:.2}, Nodes: {}", result.status, result.cost, result.nodes_expanded);
     }
 }

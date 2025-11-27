@@ -53,6 +53,11 @@ pub fn jps<H>(
 where
     H: Heuristic<GridPos>,
 {
+    debug_assert!(
+        grid.is_uniform(),
+        "JPS is defined for uniform-cost grids; ensure Grid2D costs are all 1.0"
+    );
+
     let start_time = Instant::now();
     let mut open_set = BinaryHeap::new();
     let mut g_scores = HashMap::new();

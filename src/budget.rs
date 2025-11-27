@@ -47,6 +47,7 @@ pub struct BudgetedPathfinder<G: Graph> {
     nodes_expanded: usize,
     iterations: usize,
     pub status: ComputeStatus<G::Node>,
+    pub last_partial: Option<PathResult<G::Node>>,
 }
 
 impl<G> BudgetedPathfinder<G> 
@@ -64,6 +65,7 @@ where
             nodes_expanded: 0,
             iterations: 0,
             status: ComputeStatus::NotStarted,
+            last_partial: None,
         }
     }
 
@@ -74,6 +76,7 @@ where
         self.came_from.clear();
         self.nodes_expanded = 0;
         self.iterations = 0;
+        self.last_partial = None;
         
         self.g_scores.insert(start.clone(), 0.0);
         let h = heuristic.estimate(&start, &goal);
@@ -103,13 +106,15 @@ where
             self.iterations += 1;
              
              // Check budget
-             if self.iterations % 10 == 0 && start_time.elapsed() > budget {
-                  self.open_set.push(State { node: current, cost: f_score, g_score: current_g, tie_breaker: tb }); 
-                  return false; 
+            if self.iterations % 10 == 0 && start_time.elapsed() > budget {
+                 self.last_partial = Some(self.reconstruct_path(current.clone(), PathStatus::PartialTimeout));
+                 self.open_set.push(State { node: current, cost: f_score, g_score: current_g, tie_breaker: tb }); 
+                 return false; 
              }
 
             if &current == goal {
                 let res = self.reconstruct_path(current, PathStatus::Found);
+                self.last_partial = Some(res.clone());
                 self.status = ComputeStatus::Complete(res);
                 return true;
             }
@@ -149,6 +154,7 @@ where
             nodes_expanded: self.nodes_expanded,
             status: PathStatus::NotFound,
         });
+        self.last_partial = None;
         true
     }
     
@@ -180,5 +186,9 @@ where
         } else {
             None
         }
+    }
+
+    pub fn partial_result(&self) -> Option<&PathResult<G::Node>> {
+        self.last_partial.as_ref()
     }
 }

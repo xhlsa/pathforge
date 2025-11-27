@@ -5,3 +5,4 @@ pub mod graphs;
 pub mod cache;
 pub mod smoothing;
 pub mod budget;
+pub use algorithms::flowfield;

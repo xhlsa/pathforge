@@ -12,6 +12,26 @@ fn bench_jps_vs_astar(c: &mut Criterion) {
     let start = GridPos { x: 10, y: 10 };
     let goal = GridPos { x: 110, y: 110 };
 
+    let astar_sample = astar(
+        &grid,
+        &heuristic,
+        start,
+        goal,
+        AStarConfig::default(),
+    );
+    let jps_sample = jps(
+        &grid,
+        &heuristic,
+        start,
+        goal,
+        AStarConfig::default(),
+    );
+    println!(
+        "nodes_expanded (empty 128x128): astar={} jps={}",
+        astar_sample.nodes_expanded,
+        jps_sample.nodes_expanded
+    );
+
     let mut group = c.benchmark_group("jps_vs_astar_empty");
     
     group.bench_function("astar", |b| {
@@ -44,6 +64,25 @@ fn bench_jps_vs_astar(c: &mut Criterion) {
     for x in (4..width).step_by(4) {
         grid_maze.set_region_blocked((x, 0, 1, height - 10), true);
     }
+    let astar_maze_sample = astar(
+        &grid_maze,
+        &heuristic,
+        start,
+        goal,
+        AStarConfig::default(),
+    );
+    let jps_maze_sample = jps(
+        &grid_maze,
+        &heuristic,
+        start,
+        goal,
+        AStarConfig::default(),
+    );
+    println!(
+        "nodes_expanded (maze 64x64): astar={} jps={}",
+        astar_maze_sample.nodes_expanded,
+        jps_maze_sample.nodes_expanded
+    );
     
     let mut group = c.benchmark_group("jps_vs_astar_maze");
     

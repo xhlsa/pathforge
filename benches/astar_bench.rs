@@ -11,7 +11,46 @@ fn bench_astar_empty(c: &mut Criterion) {
     let start = GridPos { x: 10, y: 10 };
     let goal = GridPos { x: 110, y: 110 };
 
+    let sample = astar(
+        &grid,
+        &heuristic,
+        start,
+        goal,
+        AStarConfig::default(),
+    );
+    println!("nodes_expanded (astar_empty_128x128): {}", sample.nodes_expanded);
+
     c.bench_function("astar_empty_128x128", |b| {
+        b.iter(|| {
+            astar(
+                black_box(&grid),
+                black_box(&heuristic),
+                black_box(start),
+                black_box(goal),
+                black_box(AStarConfig::default()),
+            )
+        })
+    });
+}
+
+fn bench_astar_empty_100(c: &mut Criterion) {
+    let width = 100;
+    let height = 100;
+    let grid = Grid2D::new(width, height, DiagonalMode::Always);
+    let heuristic = Diagonal::default();
+    let start = GridPos { x: 1, y: 1 };
+    let goal = GridPos { x: 98, y: 98 };
+
+    let sample = astar(
+        &grid,
+        &heuristic,
+        start,
+        goal,
+        AStarConfig::default(),
+    );
+    println!("nodes_expanded (astar_empty_100x100): {}", sample.nodes_expanded);
+
+    c.bench_function("astar_empty_100x100", |b| {
         b.iter(|| {
             astar(
                 black_box(&grid),
@@ -37,6 +76,15 @@ fn bench_astar_maze(c: &mut Criterion) {
     let start = GridPos { x: 1, y: 1 };
     let goal = GridPos { x: 60, y: 60 };
 
+    let sample = astar(
+        &grid,
+        &heuristic,
+        start,
+        goal,
+        AStarConfig::default(),
+    );
+    println!("nodes_expanded (astar_maze_64x64): {}", sample.nodes_expanded);
+
     c.bench_function("astar_maze_64x64", |b| {
         b.iter(|| {
             astar(
@@ -50,5 +98,41 @@ fn bench_astar_maze(c: &mut Criterion) {
     });
 }
 
-criterion_group!(benches, bench_astar_empty, bench_astar_maze);
+fn bench_astar_empty_1024(c: &mut Criterion) {
+    let width = 1024;
+    let height = 1024;
+    let grid = Grid2D::new(width, height, DiagonalMode::Always);
+    let heuristic = Diagonal::default();
+    let start = GridPos { x: 1, y: 1 };
+    let goal = GridPos { x: 1022, y: 1022 };
+
+    let sample = astar(
+        &grid,
+        &heuristic,
+        start,
+        goal,
+        AStarConfig::default(),
+    );
+    println!("nodes_expanded (astar_empty_1024x1024): {}", sample.nodes_expanded);
+
+    c.bench_function("astar_empty_1024x1024", |b| {
+        b.iter(|| {
+            astar(
+                black_box(&grid),
+                black_box(&heuristic),
+                black_box(start),
+                black_box(goal),
+                black_box(AStarConfig::default()),
+            )
+        })
+    });
+}
+
+criterion_group!(
+    benches,
+    bench_astar_empty,
+    bench_astar_empty_100,
+    bench_astar_empty_1024,
+    bench_astar_maze
+);
 criterion_main!(benches);

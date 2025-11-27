@@ -89,6 +89,15 @@ impl Grid2D {
             *c = CellType::Passable(1.0);
         }
     }
+
+    /// Returns true if every passable cell uses the default uniform cost of 1.0.
+    /// JPS and other uniform-cost optimizations rely on this invariant.
+    pub fn is_uniform(&self) -> bool {
+        self.cells.iter().all(|c| match c {
+            CellType::Passable(cost) => (*cost - 1.0).abs() < f32::EPSILON,
+            CellType::Blocked => true,
+        })
+    }
 }
 
 use crate::heuristics::Position;
